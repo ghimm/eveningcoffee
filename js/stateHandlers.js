@@ -226,7 +226,7 @@ var controller = function () {
             var index = this.attributes['index'];
             index += 1;
             // Check for last audio file.
-            if (index === audioData.length) {
+            if (index >= audioData.length) {
                 if (this.attributes['loop']) {
                     index = 0;
                 } else {
