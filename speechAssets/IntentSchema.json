@@ -4,6 +4,15 @@
       "intent": "PlayAudio"
     },
     {
+      "intent": "BeginEpisode",
+      "slots": [
+        {
+          "name": "EpisodeNumber",
+          "type": "AMAZON.NUMBER"
+        }
+      ]
+    },
+    {
       "intent": "AMAZON.PauseIntent"
     },
     {
