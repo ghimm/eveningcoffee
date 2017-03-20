@@ -5,13 +5,13 @@ var audioData = require('./audioAssets');
 var constants = require('./constants');
 
 var stateHandlers = {
-    startModeIntentHandlers : Alexa.CreateStateHandler(constants.states.START_MODE, {
+    startModeIntentHandlers: Alexa.CreateStateHandler(constants.states.START_MODE, {
         /*
          *  All Intent Handlers for state : START_MODE
          */
-        'LaunchRequest' : function () {
+        'LaunchRequest': function() {
             // Initialize Attributes
-            this.attributes['playOrder'] = Array.apply(null, {length: audioData.length}).map(Number.call, Number);
+            this.attributes['playOrder'] = Array.apply(null, { length: audioData.length }).map(Number.call, Number);
             this.attributes['index'] = 0;
             this.attributes['offsetInMilliseconds'] = 0;
             this.attributes['loop'] = true;
@@ -20,16 +20,16 @@ var stateHandlers = {
             //  Change state to START_MODE
             this.handler.state = constants.states.START_MODE;
 
-            var message = 'Welcome to Evening Coffee. You can say, play the audio to begin the podcast.';
-            var reprompt = 'You can say, play the audio, to begin.';
+            var message = 'Welcome to Evening Coffee. There are 12 episodes.  To begin episode 3, you can say, begin episode 3.';
+            var reprompt = 'You can also say, play audio, to play from episode 1.';
 
             this.response.speak(message).listen(reprompt);
             this.emit(':responseReady');
         },
-        'PlayAudio' : function () {
+        'PlayAudio': function() {
             if (!this.attributes['playOrder']) {
                 // Initialize Attributes if undefined.
-                this.attributes['playOrder'] = Array.apply(null, {length: audioData.length}).map(Number.call, Number);
+                this.attributes['playOrder'] = Array.apply(null, { length: audioData.length }).map(Number.call, Number);
                 this.attributes['index'] = 0;
                 this.attributes['offsetInMilliseconds'] = 0;
                 this.attributes['loop'] = true;
@@ -40,35 +40,55 @@ var stateHandlers = {
             }
             controller.play.call(this);
         },
-        'AMAZON.HelpIntent' : function () {
-            var message = 'Welcome to Evening Coffee. You can say, play the audio, to begin the podcast.';
+        'BeginEpisode': function() {
+            if (!this.attributes['playOrder']) {
+                // Initialize Attributes if undefined.
+                this.attributes['playOrder'] = Array.apply(null, { length: audioData.length }).map(Number.call, Number);
+                this.attributes['index'] = 0;
+                this.attributes['offsetInMilliseconds'] = 0;
+                this.attributes['loop'] = true;
+                this.attributes['shuffle'] = false;
+                this.attributes['playbackIndexChanged'] = true;
+                //  Change state to START_MODE
+                this.handler.state = constants.states.START_MODE;
+            }
+            var podcast = this.event.request.intent.slots.EpisodeNumber.value;
+            if (podcast < 12 || podcast > 0) {
+                this.attributes['index'] = podcast;
+            } else {
+                this.attributes['index'] = 0;
+            }
+            controller.play.call(this);
+        },
+        'AMAZON.HelpIntent': function() {
+            var message = 'Welcome to Evening Coffee. You can say, play audio, to begin the podcast.';
             this.response.speak(message).listen(message);
             this.emit(':responseReady');
         },
-        'AMAZON.StopIntent' : function () {
+        'AMAZON.StopIntent': function() {
             var message = 'Good bye.';
             this.response.speak(message);
             this.emit(':responseReady');
         },
-        'AMAZON.CancelIntent' : function () {
+        'AMAZON.CancelIntent': function() {
             var message = 'Good bye.';
             this.response.speak(message);
             this.emit(':responseReady');
         },
-        'SessionEndedRequest' : function () {
+        'SessionEndedRequest': function() {
             // No session ended logic
         },
-        'Unhandled' : function () {
-            var message = 'Sorry, I could not understand. Please say, play the audio, to begin the audio.';
+        'Unhandled': function() {
+            var message = 'Sorry, I could not understand. Please say, play audio, to begin the podcast.';
             this.response.speak(message).listen(message);
             this.emit(':responseReady');
         }
     }),
-    playModeIntentHandlers : Alexa.CreateStateHandler(constants.states.PLAY_MODE, {
+    playModeIntentHandlers: Alexa.CreateStateHandler(constants.states.PLAY_MODE, {
         /*
          *  All Intent Handlers for state : PLAY_MODE
          */
-        'LaunchRequest' : function () {
+        'LaunchRequest': function() {
             /*
              *  Session resumed in PLAY_MODE STATE.
              *  If playback had finished during last session :
@@ -82,8 +102,8 @@ var stateHandlers = {
             var reprompt;
             if (this.attributes['playbackFinished']) {
                 this.handler.state = constants.states.START_MODE;
-                message = 'Welcome to Evening Coffee. You can say, play the audio to begin the podcast.';
-                reprompt = 'You can say, play the audio, to begin.';
+                message = 'Welcome to Evening Coffee. There are 12 episodes.  To begin episode 3, you can say, begin episode 3.';
+                reprompt = 'You can also say, play audio, to play from episode 1.';
             } else {
                 this.handler.state = constants.states.RESUME_DECISION_MODE;
                 message = 'You were listening to ' + audioData[this.attributes['playOrder'][this.attributes['index']]].title +
@@ -94,77 +114,77 @@ var stateHandlers = {
             this.response.speak(message).listen(reprompt);
             this.emit(':responseReady');
         },
-        'PlayAudio' : function () { controller.play.call(this) },
-        'AMAZON.NextIntent' : function () { controller.playNext.call(this) },
-        'AMAZON.PreviousIntent' : function () { controller.playPrevious.call(this) },
-        'AMAZON.PauseIntent' : function () { controller.stop.call(this) },
-        'AMAZON.StopIntent' : function () { controller.stop.call(this) },
-        'AMAZON.CancelIntent' : function () { controller.stop.call(this) },
-        'AMAZON.ResumeIntent' : function () { controller.play.call(this) },
-        'AMAZON.LoopOnIntent' : function () { controller.loopOn.call(this) },
-        'AMAZON.LoopOffIntent' : function () { controller.loopOff.call(this) },
-        'AMAZON.ShuffleOnIntent' : function () { controller.shuffleOn.call(this) },
-        'AMAZON.ShuffleOffIntent' : function () { controller.shuffleOff.call(this) },
-        'AMAZON.StartOverIntent' : function () { controller.startOver.call(this) },
-        'AMAZON.HelpIntent' : function () {
+        'PlayAudio': function() { controller.play.call(this) },
+        'AMAZON.NextIntent': function() { controller.playNext.call(this) },
+        'AMAZON.PreviousIntent': function() { controller.playPrevious.call(this) },
+        'AMAZON.PauseIntent': function() { controller.stop.call(this) },
+        'AMAZON.StopIntent': function() { controller.stop.call(this) },
+        'AMAZON.CancelIntent': function() { controller.stop.call(this) },
+        'AMAZON.ResumeIntent': function() { controller.play.call(this) },
+        'AMAZON.LoopOnIntent': function() { controller.loopOn.call(this) },
+        'AMAZON.LoopOffIntent': function() { controller.loopOff.call(this) },
+        'AMAZON.ShuffleOnIntent': function() { controller.shuffleOn.call(this) },
+        'AMAZON.ShuffleOffIntent': function() { controller.shuffleOff.call(this) },
+        'AMAZON.StartOverIntent': function() { controller.startOver.call(this) },
+        'AMAZON.HelpIntent': function() {
             // This will called while audio is playing and a user says "ask <invocation_name> for help"
             var message = 'You are listening to Evening Coffee. You can say, Next or Previous to navigate through the playlist. ' +
                 'At any time, you can say Pause to pause the audio and Resume to resume.';
             this.response.speak(message).listen(message);
             this.emit(':responseReady');
         },
-        'SessionEndedRequest' : function () {
+        'SessionEndedRequest': function() {
             // No session ended logic
         },
-        'Unhandled' : function () {
+        'Unhandled': function() {
             var message = 'Sorry, I could not understand. You can say, Next or Previous to navigate through the playlist.';
             this.response.speak(message).listen(message);
             this.emit(':responseReady');
         }
     }),
-    remoteControllerHandlers : Alexa.CreateStateHandler(constants.states.PLAY_MODE, {
+    remoteControllerHandlers: Alexa.CreateStateHandler(constants.states.PLAY_MODE, {
         /*
          *  All Requests are received using a Remote Control. Calling corresponding handlers for each of them.
          */
-        'PlayCommandIssued' : function () { controller.play.call(this) },
-        'PauseCommandIssued' : function () { controller.stop.call(this) },
-        'NextCommandIssued' : function () { controller.playNext.call(this) },
-        'PreviousCommandIssued' : function () { controller.playPrevious.call(this) }
+        'PlayCommandIssued': function() { controller.play.call(this) },
+        'PauseCommandIssued': function() { controller.stop.call(this) },
+        'NextCommandIssued': function() { controller.playNext.call(this) },
+        'PreviousCommandIssued': function() { controller.playPrevious.call(this) }
     }),
-    resumeDecisionModeIntentHandlers : Alexa.CreateStateHandler(constants.states.RESUME_DECISION_MODE, {
+    resumeDecisionModeIntentHandlers: Alexa.CreateStateHandler(constants.states.RESUME_DECISION_MODE, {
         /*
          *  All Intent Handlers for state : RESUME_DECISION_MODE
          */
-        'LaunchRequest' : function () {
+        'LaunchRequest': function() {
             var message = 'You were listening to ' + audioData[this.attributes['playOrder'][this.attributes['index']]].title +
                 ' Would you like to resume?';
             var reprompt = 'You can say yes to resume or no to play from the top.';
             this.response.speak(message).listen(reprompt);
             this.emit(':responseReady');
         },
-        'AMAZON.YesIntent' : function () { controller.play.call(this) },
-        'AMAZON.NoIntent' : function () { controller.reset.call(this) },
-        'AMAZON.HelpIntent' : function () {
+        'AMAZON.YesIntent': function() { controller.play.call(this) },
+        'AMAZON.NoIntent': function() { controller.reset.call(this) },
+        'AMAZON.HelpIntent': function() {
             var message = 'You were listening to ' + audioData[this.attributes['index']].title +
                 ' Would you like to resume?';
             var reprompt = 'You can say yes to resume or no to play from the top.';
             this.response.speak(message).listen(reprompt);
             this.emit(':responseReady');
         },
-        'AMAZON.StopIntent' : function () {
+        'AMAZON.StopIntent': function() {
             var message = 'Good bye.';
             this.response.speak(message);
             this.emit(':responseReady');
         },
-        'AMAZON.CancelIntent' : function () {
+        'AMAZON.CancelIntent': function() {
             var message = 'Good bye.';
             this.response.speak(message);
             this.emit(':responseReady');
         },
-        'SessionEndedRequest' : function () {
+        'SessionEndedRequest': function() {
             // No session ended logic
         },
-        'Unhandled' : function () {
+        'Unhandled': function() {
             var message = 'Sorry, this is not a valid command. Please say help to hear what you can say.';
             this.response.speak(message).listen(message);
             this.emit(':responseReady');
@@ -174,9 +194,9 @@ var stateHandlers = {
 
 module.exports = stateHandlers;
 
-var controller = function () {
+var controller = function() {
     return {
-        play: function () {
+        play: function() {
             /*
              *  Using the function to begin playing audio when:
              *      Play Audio intent invoked.
@@ -209,7 +229,7 @@ var controller = function () {
             this.response.audioPlayerPlay(playBehavior, podcast.url, token, null, offsetInMilliseconds);
             this.emit(':responseReady');
         },
-        stop: function () {
+        stop: function() {
             /*
              *  Issuing AudioPlayer.Stop directive to stop the audio.
              *  Attributes already stored when AudioPlayer.Stopped request received.
@@ -217,7 +237,7 @@ var controller = function () {
             this.response.audioPlayerStop();
             this.emit(':responseReady');
         },
-        playNext: function () {
+        playNext: function() {
             /*
              *  Called when AMAZON.NextIntent or PlaybackController.NextCommandIssued is invoked.
              *  Index is computed using token stored when AudioPlayer.PlaybackStopped command is received.
@@ -245,7 +265,7 @@ var controller = function () {
 
             controller.play.call(this);
         },
-        playPrevious: function () {
+        playPrevious: function() {
             /*
              *  Called when AMAZON.PreviousIntent or PlaybackController.PreviousCommandIssued is invoked.
              *  Index is computed using token stored when AudioPlayer.PlaybackStopped command is received.
@@ -273,21 +293,21 @@ var controller = function () {
 
             controller.play.call(this);
         },
-        loopOn: function () {
+        loopOn: function() {
             // Turn on loop play.
             this.attributes['loop'] = true;
             var message = 'Loop turned on.';
             this.response.speak(message);
             this.emit(':responseReady');
         },
-        loopOff: function () {
+        loopOff: function() {
             // Turn off looping
             this.attributes['loop'] = false;
             var message = 'Loop turned off.';
             this.response.speak(message);
             this.emit(':responseReady');
         },
-        shuffleOn: function () {
+        shuffleOn: function() {
             // Turn on shuffle play.
             this.attributes['shuffle'] = true;
             shuffleOrder((newOrder) => {
@@ -299,22 +319,22 @@ var controller = function () {
                 controller.play.call(this);
             });
         },
-        shuffleOff: function () {
+        shuffleOff: function() {
             // Turn off shuffle play. 
             if (this.attributes['shuffle']) {
                 this.attributes['shuffle'] = false;
                 // Although changing index, no change in audio file being played as the change is to account for reordering playOrder
                 this.attributes['index'] = this.attributes['playOrder'][this.attributes['index']];
-                this.attributes['playOrder'] = Array.apply(null, {length: audioData.length}).map(Number.call, Number);
+                this.attributes['playOrder'] = Array.apply(null, { length: audioData.length }).map(Number.call, Number);
             }
             controller.play.call(this);
         },
-        startOver: function () {
+        startOver: function() {
             // Start over the current audio file.
             this.attributes['offsetInMilliseconds'] = 0;
             controller.play.call(this);
         },
-        reset: function () {
+        reset: function() {
             // Reset to top of the playlist.
             this.attributes['index'] = 0;
             this.attributes['offsetInMilliseconds'] = 0;
@@ -340,7 +360,7 @@ function canThrowCard() {
 
 function shuffleOrder(callback) {
     // Algorithm : Fisher-Yates shuffle
-    var array = Array.apply(null, {length: audioData.length}).map(Number.call, Number);
+    var array = Array.apply(null, { length: audioData.length }).map(Number.call, Number);
     var currentIndex = array.length;
     var temp, randomIndex;
 
